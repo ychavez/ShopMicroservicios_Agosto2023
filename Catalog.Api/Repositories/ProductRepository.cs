@@ -1,9 +1,10 @@
 ﻿using Catalog.Api.Data;
 using Catalog.Api.Entities;
+using MongoDB.Driver;
 
 namespace Catalog.Api.Repositories
 {
-    public class ProductRepository
+    public class ProductRepository : IProductRepository
     {
         private readonly ICatalogContext catalogContext;
 
@@ -14,5 +15,8 @@ namespace Catalog.Api.Repositories
 
         public async Task CreateProduct(Product product)
             => await catalogContext.Products.InsertOneAsync(product);
+
+        public async Task<IEnumerable<Product>> GetProducts()
+              => await catalogContext.Products.Find(x => true).ToListAsync();
     }
 }
