@@ -1,5 +1,6 @@
 
 using Basket.Api.Repositories;
+using Inventory.grpc.Protos;
 
 namespace Basket.Api
 {
@@ -20,6 +21,9 @@ namespace Basket.Api
             {
                 x.Configuration = builder.Configuration.GetValue<string>("CacheSettings:ConnectionString");
             });
+
+            builder.Services.AddGrpcClient<ExistenceService.ExistenceServiceClient>
+                (x=> x.Address = new Uri(builder.Configuration["GrpcSettings:HostAddress"]!));
 
             builder.Services.AddScoped<IBasketRepository, BasketRepository>();
 
