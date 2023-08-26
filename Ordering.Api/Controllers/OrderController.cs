@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Ordering.Application.Features.Commands.Checkout;
 using Ordering.Application.Features.Queries.GetOrders;
+using Ordering.Application.Features.Queries.GetOrdersByUser;
 
 namespace Ordering.Api.Controllers
 {
@@ -24,5 +25,8 @@ namespace Ordering.Api.Controllers
         public async Task<ActionResult<List<GetOrdersViewModel>>> GetOrders()
          => await mediator.Send(new GetOrdersQuery());
 
+        [HttpGet("username")]
+        public async Task<ActionResult<List<GetOrdersViewModel>>> GetOrders(string username)
+        => await mediator.Send(new GetOrdersByUserQuery() { Username = username });
     }
 }
