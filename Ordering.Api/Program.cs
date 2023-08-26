@@ -1,4 +1,10 @@
+using Microsoft.AspNetCore.HttpLogging;
+using Microsoft.EntityFrameworkCore;
 using Ordering.Application;
+using Ordering.Application.Contracts;
+using Ordering.Domain.Entities;
+using Ordering.Infrastructure.Persistence;
+using Ordering.Infrastructure.Repositories;
 
 namespace Ordering.Api
 {
@@ -16,6 +22,11 @@ namespace Ordering.Api
             builder.Services.AddSwaggerGen();
             builder.Services.AddApplicationServices();
 
+            builder.Services.AddDbContext<OrderContext>(
+                options => options.UseSqlServer(builder.Configuration
+                                                       .GetConnectionString("OrderingConnection")));
+
+            builder.Services.AddScoped(typeof(IGenericRepository<>),typeof(GenericRepository<>));
 
             var app = builder.Build();
 

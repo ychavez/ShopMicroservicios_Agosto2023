@@ -20,9 +20,6 @@
 
   <ItemGroup>
     <Folder Include="Behaviors\" />
-    <Folder Include="Contracts\" />
-    <Folder Include="Features\" />
-    <Folder Include="Mappings\" />
   </ItemGroup>
 
 </Project>
