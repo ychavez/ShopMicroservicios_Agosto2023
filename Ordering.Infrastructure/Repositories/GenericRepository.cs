@@ -38,6 +38,10 @@ namespace Ordering.Infrastructure.Repositories
             await orderContext.SaveChangesAsync();
         }
 
-
+        public async Task DeleteAsync(T entity)
+        {
+            orderContext.Set<T>().Remove(entity);
+            await orderContext.SaveChangesAsync();
+        }
     }
 }
