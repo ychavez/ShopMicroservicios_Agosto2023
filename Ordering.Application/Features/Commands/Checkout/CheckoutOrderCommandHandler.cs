@@ -21,7 +21,7 @@ namespace Ordering.Application.Features.Commands.Checkout
             var order = mapper.Map<Order>(request);
 
             var newOrder = await genericRepository.AddAsync(order);
-            
+
             return newOrder.Id;
         }
     }
