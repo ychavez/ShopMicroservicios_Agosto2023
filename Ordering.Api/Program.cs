@@ -1,5 +1,8 @@
+using EventBus.Messages.Common;
+using MassTransit;
 using Microsoft.AspNetCore.HttpLogging;
 using Microsoft.EntityFrameworkCore;
+using Ordering.Api.EventBusConsumer;
 using Ordering.Application;
 using Ordering.Application.Contracts;
 using Ordering.Domain.Entities;
@@ -27,6 +30,25 @@ namespace Ordering.Api
                                                        .GetConnectionString("OrderingConnection")));
 
             builder.Services.AddScoped(typeof(IGenericRepository<>),typeof(GenericRepository<>));
+
+            builder.Services.AddScoped<EventConsumer>();
+
+            builder.Services.AddMassTransit(x =>
+            {
+                x.AddConsumer<EventConsumer>();
+
+                x.UsingRabbitMq((ctx, cfg) =>
+                {
+                    cfg.Host(builder.Configuration["EventBusSettings:HostAddress"]);
+
+                    cfg.ReceiveEndpoint(EventBusConstants.BasketCheckoutQueue, x =>
+                    x.ConfigureConsumer<EventConsumer>(ctx));
+
+                });
+            });
+
+            builder.Services.AddAutoMapper(typeof(Program));    
+
 
             var app = builder.Build();
 

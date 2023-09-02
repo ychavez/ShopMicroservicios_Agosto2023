@@ -1,6 +1,8 @@
 ﻿using Basket.Api.Entities;
 using Basket.Api.Repositories;
+using EventBus.Messages.Events;
 using Inventory.grpc.Protos;
+using MassTransit;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Basket.Api.Controllers
@@ -11,11 +13,15 @@ namespace Basket.Api.Controllers
     {
         private readonly IBasketRepository basketRepository;
         private readonly ExistenceService.ExistenceServiceClient existenceService;
+        private readonly IPublishEndpoint publishEndpoint;
 
-        public BasketController(IBasketRepository basketRepository, ExistenceService.ExistenceServiceClient existenceService)
+        public BasketController(IBasketRepository basketRepository,
+            ExistenceService.ExistenceServiceClient existenceService,
+            IPublishEndpoint publishEndpoint)
         {
             this.basketRepository = basketRepository;
             this.existenceService = existenceService;
+            this.publishEndpoint = publishEndpoint;
         }
 
         [HttpGet("{userName}")]
@@ -45,6 +51,31 @@ namespace Basket.Api.Controllers
 
             await basketRepository.UpdateBasket(shoppingCart);
             return Ok(shoppingCart);
+        }
+
+        [HttpPost("Checkout")]
+        public async Task<ActionResult> Checkout([FromBody] BasketCheckout basketCheckout)
+        {
+            var basket = await basketRepository.GetBasket(basketCheckout.UserName);
+
+            if (basket is null)
+                return BadRequest();
+
+            var eventMessage = new BasketCheckoutEvent
+            {
+                UserName = basketCheckout.UserName,
+                Address = basketCheckout.Address,
+                FirstName = basketCheckout.FirstName,
+                LastName = basketCheckout.LastName,
+                PaymentMethod = basketCheckout.PaymentMethod,
+                TotalPrice = basketCheckout.TotalPrice,
+            };
+
+            await publishEndpoint.Publish(eventMessage);
+
+            await basketRepository.DeleteBasket(basketCheckout.UserName);
+
+            return Accepted();
         }
     }
 }

@@ -1,6 +1,7 @@
 
 using Basket.Api.Repositories;
 using Inventory.grpc.Protos;
+using MassTransit;
 
 namespace Basket.Api
 {
@@ -24,6 +25,9 @@ namespace Basket.Api
 
             builder.Services.AddGrpcClient<ExistenceService.ExistenceServiceClient>
                 (x=> x.Address = new Uri(builder.Configuration["GrpcSettings:HostAddress"]!));
+
+            builder.Services.AddMassTransit(x =>
+            x.UsingRabbitMq((ctx, cfg) => cfg.Host(builder.Configuration["EventBusSettings:HostAddress"])));
 
             builder.Services.AddScoped<IBasketRepository, BasketRepository>();
 
