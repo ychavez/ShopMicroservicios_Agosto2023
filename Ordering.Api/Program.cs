@@ -1,13 +1,16 @@
 using EventBus.Messages.Common;
 using MassTransit;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.HttpLogging;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Ordering.Api.EventBusConsumer;
 using Ordering.Application;
 using Ordering.Application.Contracts;
 using Ordering.Domain.Entities;
 using Ordering.Infrastructure.Persistence;
 using Ordering.Infrastructure.Repositories;
+using System.Text;
 
 namespace Ordering.Api
 {
@@ -29,7 +32,7 @@ namespace Ordering.Api
                 options => options.UseSqlServer(builder.Configuration
                                                        .GetConnectionString("OrderingConnection")));
 
-            builder.Services.AddScoped(typeof(IGenericRepository<>),typeof(GenericRepository<>));
+            builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 
             builder.Services.AddScoped<EventConsumer>();
 
@@ -47,8 +50,26 @@ namespace Ordering.Api
                 });
             });
 
-            builder.Services.AddAutoMapper(typeof(Program));    
+            builder.Services.AddAutoMapper(typeof(Program));
 
+            builder.Services.AddAuthentication(x =>
+            {
+                x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                x.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+                .AddJwtBearer(x =>
+                {
+                    x.RequireHttpsMetadata = false;
+                    x.SaveToken = true;
+                    x.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuerSigningKey = true,
+                        IssuerSigningKey = new SymmetricSecurityKey
+                       (Encoding.ASCII.GetBytes(builder.Configuration.GetValue<string>("Identity:Key")!)),
+                        ValidateIssuer = false,
+                        ValidateAudience = false
+                    };
+                });
 
             var app = builder.Build();
 
@@ -59,6 +80,7 @@ namespace Ordering.Api
                 app.UseSwaggerUI();
             }
 
+            app.UseAuthentication();
             app.UseAuthorization();
 
 

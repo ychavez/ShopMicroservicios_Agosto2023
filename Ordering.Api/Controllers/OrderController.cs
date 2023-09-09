@@ -1,4 +1,5 @@
 ﻿using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Ordering.Application.Features.Commands.Checkout;
 using Ordering.Application.Features.Queries.GetOrders;
@@ -22,6 +23,7 @@ namespace Ordering.Api.Controllers
             => await mediator.Send(command);
 
         [HttpGet]
+        [Authorize]
         public async Task<ActionResult<List<GetOrdersViewModel>>> GetOrders()
          => await mediator.Send(new GetOrdersQuery());
 
